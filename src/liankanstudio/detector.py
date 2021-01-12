@@ -158,6 +158,7 @@ class Detector(object):
             else:
                 print("This method does not work with this target")
         elif method=="human":
+            window_name = kwargs.get("window_name","Select ROIs")
             self.detector = lambda img : cv2.selectROIs(window_name,img)
         else:
             raise AttributeError("No method have been selected")
