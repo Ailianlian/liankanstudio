@@ -175,7 +175,7 @@ class Detector(object):
         elif self.method=="tinyYOLO":
             pass
         elif "torch" in self.method:
-            return self._post_process_torch(method)
+            return self._post_process_torch(self.method)
         elif self.method=="ssd":
             img_process = _dnn_preprocess(img)
             self.model.setInput(img_process)
