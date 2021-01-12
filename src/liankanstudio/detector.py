@@ -88,6 +88,7 @@ class Detector(object):
                 device = torch.device("cuda" if use_cuda else "cpu")
                 torchfrcnn_model.to(device)
                 torchfrcnn_model.eval()
+                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
                 self.model = torchfrcnn_model
                 self.classes = COCO_INSTANCE_CATEGORY_NAMES
                 self.downfact = kwargs.get("downfact",4)
@@ -100,6 +101,7 @@ class Detector(object):
                 device = torch.device("cuda" if use_cuda else "cpu")
                 torchfrcnn_model.to(device)
                 torchfrcnn_model.eval()
+                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
                 self.model = torchfrcnn_model
                 self.classes = COCO_INSTANCE_CATEGORY_NAMES
                 self.downfact = kwargs.get("downfact",4)
@@ -112,7 +114,7 @@ class Detector(object):
                 device = torch.device("cuda" if use_cuda else "cpu")
                 torchfrcnn_model.to(device)
                 torchfrcnn_model.eval()
-
+                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
                 self.model = torchfrcnn_model
                 self.classes = COCO_INSTANCE_CATEGORY_NAMES
                 self.downfact = kwargs.get("downfact",4)
@@ -180,6 +182,7 @@ class Detector(object):
             h,w = img.shape[0:2]
             transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
             img_process = transform(img)
+            img_process.to(device=self.device)
             out = self.model([img_process])[0]
             return self._dnn_target(out["boxes"].detach().numpy()*self.downfact, out['scores'].detach().numpy(), 
             np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(out['labels'].numpy()) if COCO_INSTANCE_CATEGORY_NAMES[i]]))
@@ -187,6 +190,7 @@ class Detector(object):
             h,w = img.shape[0:2]
             transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
             img_process = transform(img)
+            img_process.to(device=self.device)
             out = self.model([img_process])[0]
             return self._dnn_target(out["boxes"].detach().numpy()*self.downfact, out['scores'].detach().numpy(), 
             np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(out['labels'].numpy()) if COCO_INSTANCE_CATEGORY_NAMES[i]]))
@@ -194,6 +198,7 @@ class Detector(object):
             h,w = img.shape[0:2]
             transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
             img_process = transform(img)
+            img_process.to(device=self.device)
             out = self.model([img_process])[0]
             return self._dnn_target(out["boxes"].detach().numpy()*self.downfact, out['scores'].detach().numpy(), 
             np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(out['labels'].numpy()) if COCO_INSTANCE_CATEGORY_NAMES[i]]))
