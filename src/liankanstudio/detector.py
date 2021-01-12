@@ -80,7 +80,7 @@ class Detector(object):
         else:
             print("Torchvision model not supported.")
 
-    def _post_process_torch(self,torchname):
+    def _post_process_torch(self,img, torchname):
         h,w = img.shape[0:2]
         transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
         img_process = transform(img)
@@ -175,7 +175,7 @@ class Detector(object):
         elif self.method=="tinyYOLO":
             pass
         elif "torch" in self.method:
-            return self._post_process_torch(self.method)
+            return self._post_process_torch(img, self.method)
         elif self.method=="ssd":
             img_process = _dnn_preprocess(img)
             self.model.setInput(img_process)
