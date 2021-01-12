@@ -6,7 +6,13 @@ Simple tool to do simple object detection on a video.
 
 ## Installation
 
-Running ```python setup.py install``` should be enough.
+Running for example
+```
+git clone https://github.com/Ailianlian/liankanstudio.git 
+cd liankanstudio
+pip install -r requirments.txt
+python setup.py install
+``` should be enough.
 
 ## Usage
 
