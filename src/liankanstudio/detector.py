@@ -14,6 +14,7 @@ try:
     import torchvision # to use pretrained model
     has_torchvision=True
     import torchvision.transforms as T
+    import torch
 except:
     print("Torchvision model not supported.")
     has_torchvision=False
@@ -83,6 +84,9 @@ class Detector(object):
         elif method=="torchkrcnn":
             if has_torchvision:
                 torchfrcnn_model = torchvision.models.detection.keypointrcnn_resnet50_fpn(pretrained=True)
+                use_cuda = torch.cuda.is_available()
+                device = torch.device("cuda" if use_cuda else "cpu")
+                torchfrcnn_model.to(device)
                 torchfrcnn_model.eval()
                 self.model = torchfrcnn_model
                 self.classes = COCO_INSTANCE_CATEGORY_NAMES
@@ -92,6 +96,9 @@ class Detector(object):
         elif method=="torchmrcnn":
             if has_torchvision:
                 torchfrcnn_model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
+                use_cuda = torch.cuda.is_available()
+                device = torch.device("cuda" if use_cuda else "cpu")
+                torchfrcnn_model.to(device)
                 torchfrcnn_model.eval()
                 self.model = torchfrcnn_model
                 self.classes = COCO_INSTANCE_CATEGORY_NAMES
@@ -101,7 +108,11 @@ class Detector(object):
         elif method=="torchfrcnn":
             if has_torchvision:
                 torchfrcnn_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+                use_cuda = torch.cuda.is_available()
+                device = torch.device("cuda" if use_cuda else "cpu")
+                torchfrcnn_model.to(device)
                 torchfrcnn_model.eval()
+
                 self.model = torchfrcnn_model
                 self.classes = COCO_INSTANCE_CATEGORY_NAMES
                 self.downfact = kwargs.get("downfact",4)
