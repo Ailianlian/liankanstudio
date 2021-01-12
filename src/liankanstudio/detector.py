@@ -61,6 +61,39 @@ def _ssd_postprocess(img, out):
 
 class Detector(object):
 
+    def _define_torch_model(self,torchname):
+        if has_torchvision:
+            if torchname=="torchfrcnn":
+                torchfrcnn_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+            elif torchname=="torchmrcnn":
+                torchfrcnn_model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
+            else:
+                torchfrcnn_model = torchvision.models.detection.keypointrcnn_resnet50_fpn(pretrained=True)
+            use_cuda = torch.cuda.is_available()
+            device = torch.device("cuda" if use_cuda else "cpu")
+            torchfrcnn_model.to(device)
+            torchfrcnn_model.eval()
+            self.device = device
+            self.model = torchfrcnn_model
+            self.classes = COCO_INSTANCE_CATEGORY_NAMES
+            self.downfact = kwargs.get("downfact",4)
+        else:
+            print("Torchvision model not supported.")
+
+    def _post_process_torch(self,torchname):
+        h,w = img.shape[0:2]
+        transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
+        img_process = transform(img)
+        img_process.to(device=self.device)
+        out = self.model([img_process])[0]
+        if torch.cuda.is_available():
+            return self._dnn_target(out["boxes"].detach().cpu().numpy()*self.downfact, out['scores'].detach().cpu().numpy(), 
+            np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(out['labels'].cpu().numpy()) if COCO_INSTANCE_CATEGORY_NAMES[i]]))
+        else:
+            return self._dnn_target(out["boxes"].detach().numpy()*self.downfact, out['scores'].detach().numpy(), 
+            np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(out['labels'].numpy()) if COCO_INSTANCE_CATEGORY_NAMES[i]]))
+
+
     def __init__(self, method, target="person",*args, **kwargs):
         self.target = target
         self.method = method
@@ -81,45 +114,8 @@ class Detector(object):
             self.model = cv2.dnn.readNetFromCaffe(model_proto_path, model_weights)
             self.size = kwargs.get("size",300)
             self.postprocess = kwargs.get("postprocess", lambda x:x)
-        elif method=="torchkrcnn":
-            if has_torchvision:
-                torchfrcnn_model = torchvision.models.detection.keypointrcnn_resnet50_fpn(pretrained=True)
-                use_cuda = torch.cuda.is_available()
-                device = torch.device("cuda" if use_cuda else "cpu")
-                torchfrcnn_model.to(device)
-                torchfrcnn_model.eval()
-                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-                self.model = torchfrcnn_model
-                self.classes = COCO_INSTANCE_CATEGORY_NAMES
-                self.downfact = kwargs.get("downfact",4)
-            else:
-                print("Torchvision model not supported.")
-        elif method=="torchmrcnn":
-            if has_torchvision:
-                torchfrcnn_model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
-                use_cuda = torch.cuda.is_available()
-                device = torch.device("cuda" if use_cuda else "cpu")
-                torchfrcnn_model.to(device)
-                torchfrcnn_model.eval()
-                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-                self.model = torchfrcnn_model
-                self.classes = COCO_INSTANCE_CATEGORY_NAMES
-                self.downfact = kwargs.get("downfact",4)
-            else:
-                print("Torchvision model not supported.")
-        elif method=="torchfrcnn":
-            if has_torchvision:
-                torchfrcnn_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-                use_cuda = torch.cuda.is_available()
-                device = torch.device("cuda" if use_cuda else "cpu")
-                torchfrcnn_model.to(device)
-                torchfrcnn_model.eval()
-                self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-                self.model = torchfrcnn_model
-                self.classes = COCO_INSTANCE_CATEGORY_NAMES
-                self.downfact = kwargs.get("downfact",4)
-            else:
-                print("Torchvision model not supported.")
+        elif "torch"in method:
+            self._define_torch_model(method)
         elif method=="ssd":
             # weights from here https://github.com/chuanqi305/MobileNet-SSD
             # mobilenet backbone so this is quite fast but not as accurate as other model.
@@ -178,6 +174,8 @@ class Detector(object):
             return self._dnn_target(boxs, conf, labels)
         elif self.method=="tinyYOLO":
             pass
+        elif "torch" in method:
+
         elif self.method=="torchfrcnn":
             h,w = img.shape[0:2]
             transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
