@@ -50,11 +50,11 @@ def get_extra_requires():
 # we are going to use 0.0.0.0 for version
 # w.x.y.z -> w+1.0.0.0 for very "big change"
 # w.x.y.z -> w.x+1.0.0 for every features
-# w.x.y.z -> w.x.y+1.0 for every fix/bug in a release (useless in fact :D)
+# w.x.y.z -> w.x.y+1.0 for every fix/bug in a release.
 # w.x.y.z -> w.x.y.z+1 for every new dev improvment/test done.
 setup(
     name='liankanstudio',
-    version='0.4.1.0',
+    version='0.4.2.0',
     description="Wonderful answer to wonderful exercise.",
     long_description=open(os.path.join('package_info.rst')).read(),
     author='Paulien Jeunesse',

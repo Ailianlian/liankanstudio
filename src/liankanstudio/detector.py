@@ -198,11 +198,21 @@ class Detector(object):
                 boxs=[]
                 for detect in self.detector:
                     boxs+=[*(detect.detectMultiScale(image_gray, *(self.param)))]
-                return boxs,None,None
             else:
-                return self.detector.detectMultiScale(image_gray, *(self.param)),None,None
+                boxs = self.detector.detectMultiScale(image_gray, *(self.param))
+            for k in range(len(boxs)):
+                boxs[k]=[boxs[k][0],boxs[k][1],boxs[k][0]+boxs[k][2],boxs[k][1]+boxs[k][3]]
+            boxs=np.array(boxs)
+            conf = np.ones(len(boxs))
+            return boxs,conf,None
         elif self.method=="human":
-            return self.detector(img),None,None
+            boxes = self.detector(img)
+            conf = np.ones(len(boxes))
+            # the boxes here are x,y,h,w but in dnn this is x1,y1,x2,y2
+            for k in range(len(boxes)):
+                boxes[k]=[boxes[k][0],boxes[k][1],boxes[k][0]+boxes[k][2],boxes[k][1]+boxes[k][3]]
+            boxes=np.array(boxes)
+            return boxes,conf,None
         else:
             # should not happen
             raise AttributeError("No method have been selected")
