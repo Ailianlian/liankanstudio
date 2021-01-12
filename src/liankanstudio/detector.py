@@ -61,7 +61,7 @@ def _ssd_postprocess(img, out):
 
 class Detector(object):
 
-    def _define_torch_model(self,torchname):
+    def _define_torch_model(self,torchname, **kwargs):
         if has_torchvision:
             if torchname=="torchfrcnn":
                 torchfrcnn_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
@@ -115,7 +115,7 @@ class Detector(object):
             self.size = kwargs.get("size",300)
             self.postprocess = kwargs.get("postprocess", lambda x:x)
         elif "torch"in method:
-            self._define_torch_model(method)
+            self._define_torch_model(method, **kwargs)
         elif method=="ssd":
             # weights from here https://github.com/chuanqi305/MobileNet-SSD
             # mobilenet backbone so this is quite fast but not as accurate as other model.
