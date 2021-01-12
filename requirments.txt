@@ -2,7 +2,7 @@ click==8.0.0a1
 dill==0.3.3
 numpy==1.19.5
 opencv-contrib-python==4.4.0.46
-pandas==1.2.0
+pandas==1.1.5
 python-dateutil==2.8.1
 pytube==10.4.1
 pytz==2020.5
