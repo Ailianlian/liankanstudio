@@ -12,7 +12,8 @@ git clone https://github.com/Ailianlian/liankanstudio.git
 cd liankanstudio
 pip install -r requirments.txt
 python setup.py install
-``` should be enough.
+``` 
+should be enough.
 
 ## Usage
 
