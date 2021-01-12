@@ -174,32 +174,8 @@ class Detector(object):
             return self._dnn_target(boxs, conf, labels)
         elif self.method=="tinyYOLO":
             pass
-        elif "torch" in method:
+        elif "torch" in self.method:
             return self._post_process_torch(method)
-        elif self.method=="torchfrcnn":
-            h,w = img.shape[0:2]
-            transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
-            img_process = transform(img)
-            img_process.to(device=self.device)
-            out = self.model([img_process])[0]
-            return self._dnn_target(out["boxes"].detach().numpy()*self.downfact, out['scores'].detach().numpy(), 
-            np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(out['labels'].numpy()) if COCO_INSTANCE_CATEGORY_NAMES[i]]))
-        elif self.method=="torchkrcnn":
-            h,w = img.shape[0:2]
-            transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
-            img_process = transform(img)
-            img_process.to(device=self.device)
-            out = self.model([img_process])[0]
-            return self._dnn_target(out["boxes"].detach().numpy()*self.downfact, out['scores'].detach().numpy(), 
-            np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(out['labels'].numpy()) if COCO_INSTANCE_CATEGORY_NAMES[i]]))
-        elif self.method=="torchmrcnn":
-            h,w = img.shape[0:2]
-            transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
-            img_process = transform(img)
-            img_process.to(device=self.device)
-            out = self.model([img_process])[0]
-            return self._dnn_target(out["boxes"].detach().numpy()*self.downfact, out['scores'].detach().numpy(), 
-            np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in list(out['labels'].numpy()) if COCO_INSTANCE_CATEGORY_NAMES[i]]))
         elif self.method=="ssd":
             img_process = _dnn_preprocess(img)
             self.model.setInput(img_process)
