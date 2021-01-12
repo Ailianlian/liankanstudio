@@ -4,6 +4,10 @@
 
 Simple tool to do simple object detection on a video.
 
+## Installation
+
+Running ```python setup.py install``` should be enough.
+
 ## Usage
 
 You can choose to use it via python package or via cli.
