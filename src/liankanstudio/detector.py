@@ -84,7 +84,7 @@ class Detector(object):
         h,w = img.shape[0:2]
         transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
         img_process = transform(img)
-        img_process.to(device=self.device)
+        img_process = img_process.to(device=self.device)
         out = self.model([img_process])[0]
         if torch.cuda.is_available():
             return self._dnn_target(out["boxes"].detach().cpu().numpy()*self.downfact, out['scores'].detach().cpu().numpy(), 
