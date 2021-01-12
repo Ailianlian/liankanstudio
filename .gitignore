@@ -1,0 +1,9 @@
+*env*
+*.pyc
+*notebook_explore*
+*temp_dl*
+*build*
+*dist*
+*egg-info
+*.eggs*
+*.evia
