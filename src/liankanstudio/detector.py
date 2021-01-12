@@ -175,7 +175,7 @@ class Detector(object):
         elif self.method=="tinyYOLO":
             pass
         elif "torch" in method:
-
+            return self._post_process_torch(method)
         elif self.method=="torchfrcnn":
             h,w = img.shape[0:2]
             transform = T.Compose([T.ToTensor(),T.Resize(size=(int(h/self.downfact),int(w/self.downfact)))])
