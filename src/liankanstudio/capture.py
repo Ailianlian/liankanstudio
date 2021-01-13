@@ -447,7 +447,7 @@ class Capture(object):
                         all_conf+=[1]
                     boxes, conf, labels, true_boxes = _detect(img, detector, threshold_detect, merge_thresh, ret_all=True)
                     # we add all the new boxes we found after non maxima suppression
-                    all_boxes += [[box[0],box[1],box[2]-box[0],box[3]-box[1]] for box in boxes
+                    all_boxes += [[box[0],box[1],box[2]-box[0],box[3]-box[1]] for box in boxes]
                     all_conf+=[cf for cf in conf]
                     idxs = cv2.dnn.NMSBoxes(all_boxes, all_conf, threshold_detect, merge_thresh)
                     boxes = all_boxes[idxs.flatten()]
