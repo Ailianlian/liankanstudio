@@ -99,10 +99,10 @@ class Detector(object):
         self.method = method
         self.param = args
         if method=="yolo":
-            model_proto_path = kwargs.get("proto_path",get_data(os.path.join("data","ssd","ssd_deploy.prototxt")))
-            model_weights = kwargs.get("weights",get_data(os.path.join("data","ssd","ssd_deploy.caffemodel")))
+            model_proto_path = kwargs.get("proto_path",get_data(os.path.join("data","yolo","yolo.cfg")))
+            model_weights = kwargs.get("weights",get_data(os.path.join("data","yolo","yolo.weights")))
             self.classes = kwargs.get("classes",SSD_CLASSES)
-            self.model = cv2.dnn.readNetFromCaffe(model_proto_path, model_weights)
+            self.model = cv2.dnn.readNetFromDarknet(model_proto_path, model_weights)
             self.size = kwargs.get("size",300)
             self.postprocess = kwargs.get("postprocess", lambda x:x)
         elif method=="tinyYOLO":

@@ -389,14 +389,13 @@ class Capture(object):
 
         Args
         ----
-
-        detector        : an object Detector. Will detect the element according to the setting of the object.
-        rate            : if no scenes are found, do detection every rate frames.
-        scenes          : the scenes , overwrite self.scenes if not NONE, if scene and self.scene are none we compute the scene
-        tracker_type    : the different opencv implemented tracker, value in ["csrt","kcf","boosting","mil","tld","medianflow","mosse"]
-        verbose         : if you want an estimated time when doing without video processing. Overhead is minimal according to tqdm
-        output_path     : the path where we output the video if not None
-        identifier      : nothing for the moment. Coming Soon.
+            detector        : an object Detector. Will detect the element according to the setting of the object.
+            rate            : if no scenes are found, do detection every rate frames.
+            scenes          : the scenes , overwrite self.scenes if not NONE, if scene and self.scene are none we compute the scene
+            tracker_type    : the different opencv implemented tracker, value in ["csrt","kcf","boosting","mil","tld","medianflow","mosse"]
+            verbose         : if you want an estimated time when doing without video processing. Overhead is minimal according to tqdm
+            output_path     : the path where we output the video if not None
+            identifier      : nothing for the moment. Coming Soon.
 
         """
         # TODO : Implement the cache...
