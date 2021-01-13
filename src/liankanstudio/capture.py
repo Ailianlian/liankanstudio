@@ -68,10 +68,12 @@ def _detect(img, detector, conf_thresh, nms_thresh, trackables=None, ret_all=Fal
             idxs = cv2.dnn.NMSBoxes(boxes.tolist(), conf.tolist(), conf_thresh, nms_thresh)
     if len(idxs)>0:
         nboxes = boxes[idxs.flatten()]
+        nconf = conf[idxs.flatten()]
     else:
         nboxes = []
+        nconf = []
     if ret_all:
-        return nboxes, conf, labels, boxes
+        return nboxes, nconf, labels, boxes, conf
     return nboxes
 
 
@@ -466,7 +468,7 @@ class Capture(object):
                             all_conf+=[1]
                     for todel in to_del:
                         del trackables[todel]
-                    boxes, conf, labels, true_boxes = _detect(img, detector, threshold_detect, merge_thresh, ret_all=True)
+                    boxes, conf, labels, true_boxes, true_conf = _detect(img, detector, threshold_detect, merge_thresh, ret_all=True)
                     # we add all the new boxes we found after non maxima suppression
                     all_boxes += [[box[0],box[1],box[2],box[3]] for box in boxes]
                     
@@ -484,7 +486,7 @@ class Capture(object):
                         object_counter+=(len(boxes)-z_fix)
                     # trackables = _identify(img, boxes, trackables, object_counter, frame_nb, tracker_type)
                     #object_counter+=len(boxes)
-                    stats[frame_nb]["conf"]=conf
+                    stats[frame_nb]["conf"]=true_conf
                     stats[frame_nb]["trackables"]=copy.deepcopy({key:item.info() for key,item in trackables.items()})
                     stats[frame_nb]["boxes"]=true_boxes
                     stats[frame_nb]["labels"]=labels
