@@ -56,14 +56,14 @@ def _get_detection_frames(rate, scenes, max_frame, verbose, cut_scene=False):
 def _detect(img, detector, conf_thresh, nms_thresh, trackables=None, ret_all=False):
     boxes, conf, labels = detector.detect(img)
     # we clean boxs
-    #idxs = cv2.dnn.NMSBoxes(boxes.tolist(), conf.tolist(), conf_thresh, nms_thresh)
-    #if len(idxs)>0:
-    #    nboxes = boxes[idxs.flatten()]
-    #else:
-    #    nboxes = []
+    idxs = cv2.dnn.NMSBoxes(boxes.tolist(), conf.tolist(), conf_thresh, nms_thresh)
+    if len(idxs)>0:
+        nboxes = boxes[idxs.flatten()]
+    else:
+        nboxes = []
     if ret_all:
-        return boxes, conf, labels, boxes
-    return boxes
+        return nboxes, conf, labels, boxes
+    return nboxes
 
 
 def _identify(img, boxes, trackables, obj_counter, frame_nb, tracker_type):
