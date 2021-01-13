@@ -438,8 +438,8 @@ class Capture(object):
                 stats[frame_nb] = {}
                 # detect, identify, track 
                 if frame_nb in frames_where_detect:
-                    all_boxes
-                    all_conf
+                    all_boxes = []
+                    all_conf = []
                     for tracked in trackables:
                         # if we didnt lose the track we just update it via un detector
                         trackables[tracked].detect(img, detector, threshold_detect)
