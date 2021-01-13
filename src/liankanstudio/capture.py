@@ -56,7 +56,7 @@ def _get_detection_frames(rate, scenes, max_frame, verbose, cut_scene=False):
 def _detect(img, detector, conf_thresh, nms_thresh, trackables=None, ret_all=False):
     boxes, conf, labels = detector.detect(img)
     # we clean boxs
-    if isinstance(boxs,list):
+    if isinstance(boxes,list):
         if isinstance(conf,list):
             idxs = cv2.dnn.NMSBoxes(boxes, conf, conf_thresh, nms_thresh)
         else:
