@@ -76,3 +76,12 @@ Exhaustive list of the detect_method
 - maskrcnn  : Use the frcnn pretrained model of pytorch, can be found [here](https://pytorch.org/docs/stable/torchvision/models.html#mask-r-cnn)
 - yolo      : Use a yolo-ssp pretrained model, can be found [here](https://pjreddie.com/darknet/yolo/)
 - human     : Ask human to select a ROI.
+
+## Problems to solve/Things to do
+
+- Pipeline not very robust
+- Warm reload from cache
+- Add backward analysis to know where we need to have better threshold.
+
+
+Any advice is welcomed to improve this.
