@@ -7,6 +7,7 @@ import numpy as np
 import multiprocessing as mp
 import _pickle as cp
 import os
+import copy
 
 (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
 CV2_MAJOR_VER = int(major_ver)
@@ -55,14 +56,14 @@ def _get_detection_frames(rate, scenes, max_frame, verbose, cut_scene=False):
 def _detect(img, detector, conf_thresh, nms_thresh, trackables=None, ret_all=False):
     boxes, conf, labels = detector.detect(img)
     # we clean boxs
-    idxs = cv2.dnn.NMSBoxes(boxes.tolist(), conf.tolist(), conf_thresh, nms_thresh)
-    if len(idxs)>0:
-        nboxes = boxes[idxs.flatten()]
-    else:
-        nboxes = []
+    #idxs = cv2.dnn.NMSBoxes(boxes.tolist(), conf.tolist(), conf_thresh, nms_thresh)
+    #if len(idxs)>0:
+    #    nboxes = boxes[idxs.flatten()]
+    #else:
+    #    nboxes = []
     if ret_all:
-        return nboxes, conf, labels, boxes
-    return nboxes
+        return boxes, conf, labels, boxes
+    return boxes
 
 
 def _identify(img, boxes, trackables, obj_counter, frame_nb, tracker_type):
@@ -375,7 +376,11 @@ class Capture(object):
                 
                 trackables = stats[scene_counter][frame_nb-self.scenes[scene_counter][0].get_frames()]["trackables"]
                 for key, item in trackables.items():
-                    img = item.draw_rectangle(img)
+                    box = item["box"]
+                    p1 = (int(box[0]), int(box[1]))
+                    p2 = (int(box[2]+box[0]), int(box[3]+box[1]))
+                    cv2.rectangle(img, p1, p2, (255,0,0), 2, 1)
+                    # img = item.draw_rectangle(img)
                 if self.scenes[scene_counter][-1].get_frames()-1 == frame_nb:
                     scene_counter+=1
                 return img, (scene_counter,)
@@ -440,32 +445,43 @@ class Capture(object):
                 if frame_nb in frames_where_detect:
                     all_boxes = []
                     all_conf = []
+                    to_del = []
                     for tracked in trackables:
                         # if we didnt lose the track we just update it via un detector
+                        
                         trackables[tracked].detect(img, detector, threshold_detect)
-                        all_boxes += [list(trackables[tracked].box)]
-                        all_conf+=[1]
+                        if trackables[tracked].box is None:
+                            to_del+=[tracked]
+                        else:
+                            all_boxes += [list(trackables[tracked].dnn_box())]
+                            all_conf+=[1]
+                    for todel in to_del:
+                        del trackables[todel]
                     boxes, conf, labels, true_boxes = _detect(img, detector, threshold_detect, merge_thresh, ret_all=True)
                     # we add all the new boxes we found after non maxima suppression
-                    all_boxes += [[box[0],box[1],box[2]-box[0],box[3]-box[1]] for box in boxes]
+                    all_boxes += [[box[0],box[1],box[2],box[3]] for box in boxes]
+                    
                     all_conf+=[cf for cf in conf]
-                    idxs = cv2.dnn.NMSBoxes(all_boxes, all_conf, threshold_detect, merge_thresh)
-                    boxes = all_boxes[idxs.flatten()]
-                    conf = all_conf[idxs.flatten()]
+                    all_boxes = np.array(all_boxes, dtype=np.int32)
+                    all_conf = np.array(all_conf, dtype=np.int32)
+                    idxs = cv2.dnn.NMSBoxes(all_boxes.tolist(), all_conf.tolist(), threshold_detect, merge_thresh)
+                    if len(idxs)>0:
+                        boxes = all_boxes[idxs.flatten()]
+                        conf = all_conf[idxs.flatten()]
                     if len(boxes)>len(trackables):
-                        # new objects
-                        for k in range(len(boxes)-len(trackables)):
-                            trackables[object_counter+k] = TrackableObject(object_counter+k,img=img, box=boxes[k+len(trackables)], frame_nb=frame_nb, tracker_type=tracker_type)
-                        object_counter+=(len(boxes)-len(trackables))
+                        z_fix = len(trackables)
+                        for k in range(len(boxes)-z_fix):
+                            trackables[object_counter+k] = TrackableObject(object_counter+k,img=img, box=boxes[k+z_fix], frame_nb=frame_nb, tracker_type=tracker_type)
+                        object_counter+=(len(boxes)-z_fix)
                     # trackables = _identify(img, boxes, trackables, object_counter, frame_nb, tracker_type)
                     #object_counter+=len(boxes)
                     stats[frame_nb]["conf"]=conf
-                    stats[frame_nb]["trackables"]=trackables
+                    stats[frame_nb]["trackables"]=copy.deepcopy({key:item.info() for key,item in trackables.items()})
                     stats[frame_nb]["boxes"]=true_boxes
                     stats[frame_nb]["labels"]=labels
                 else:
                     _track(img, trackables)
-                    stats[frame_nb]["trackables"]=trackables
+                    stats[frame_nb]["trackables"]=copy.deepcopy({key:item.info() for key,item in trackables.items()})
             
             return stats
         to_inject = [(scene_img, frames_where_detect) for scene_img, frames_where_detect in zip(self.by_scene[:scene_stop],frames_where_detect_by_scene[:scene_stop])]
@@ -480,9 +496,6 @@ class Capture(object):
         if not(video_path is None and not(look_result)):
             self.write(video_path, stats=ret, look_result=look_result, max_frame=max_frame, release_end=True)
         if output_path is not None or cache:
-            for key_scene in range(len(ret)):
-                for frame_key in ret[key_scene]:
-                    ret[key_scene][frame_key]["trackables"] = {key:item.info() for key,item in ret[key_scene][frame_key]["trackables"].items()}
             if output_path is None:
                 output_path = os.path.join(os.path.dirname(video_path),os.path.basename(video_path)+".evia")
             with open(output_path,'wb') as f:

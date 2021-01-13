@@ -149,9 +149,14 @@ class TrackableObject(object):
 
     def detect(self, img, detector, threshold_detect):
         h,w = img.shape[0:2]
-        crop = img[max(self.box[0]-50,0):min(self.box[2]+self.box[0]+50,h),max(self.box[1]-50,0):min(self.box[3]+self.box[1]+50,w)]
+        crop = img[int(max(self.box[0]-50,0)):int(min(self.box[2]+self.box[0]+50,h)),int(max(self.box[1]-50,0)):int(min(self.box[3]+self.box[1]+50,w))]
         boxes, conf, labels = detector.detect(img)
         if len(boxes)>0:
             #higher confidence one normally?
             box=boxes[0]
-            self.box = tuple((box[0],box[1],box[2]-box[0],box[3]-box[1]))
+            self.box = tuple((int(max(self.box[0]-50,0))+box[0],int(max(self.box[1]-50,0))+box[1],box[2]-box[0],box[3]-box[1]))
+        else:
+            self.box = None
+    
+    def dnn_box(self):
+        return [int(self.box[0]),int(self.box[1]),int(self.box[2]+self.box[0]),int(self.box[3]+self.box[1])]

@@ -51,9 +51,31 @@ def _dnn_preprocess(src, size=300, scale=1/127.5, mean=127.5):
     img = cv2.dnn.blobFromImage(src,scale,(size,size),mean)
     return img
 
+
+def _yolo_postprocess(img, out):
+    outputs = np.vstack(out)
+    h = img.shape[0]
+    w = img.shape[1]
+
+    boxes = []
+    confidences = []
+    classIDs = []
+
+    for output in outputs:
+        scores = output[5:]
+        classID = np.argmax(scores)
+        confidence = scores[classID]
+        x, y, u, v = output[:4] * np.array([w, h, w, h])
+        boxes.append([int(x),int(y),int(x+u), int(y+v)])
+        confidences.append(float(confidence))
+        classIDs.append(classID)
+        # cv.rectangle(img, p0, p1, WHITE, 1)
+    return (boxes, confidences,np.array([COCO_INSTANCE_CATEGORY_NAMES[i] for i in classIDs if COCO_INSTANCE_CATEGORY_NAMES[i]] ))
+
 def _ssd_postprocess(img, out):   
     h = img.shape[0]
     w = img.shape[1]
+    
     labels = np.array([SSD_CLASSES[int(i)] for  i in out[0,0,:,1]])
     box = out[0,0,:,3:7] * np.array([w, h, w, h])
     conf = out[0,0,:,2]
@@ -103,15 +125,6 @@ class Detector(object):
             model_weights = kwargs.get("weights",get_data(os.path.join("data","yolo","yolo.weights")))
             self.classes = kwargs.get("classes",SSD_CLASSES)
             self.model = cv2.dnn.readNetFromDarknet(model_proto_path, model_weights)
-            self.size = kwargs.get("size",300)
-            self.postprocess = kwargs.get("postprocess", lambda x:x)
-        elif method=="tinyYOLO":
-            pass
-        elif method=="custom":
-            model_proto_path = kwargs.get("proto_path",get_data(os.path.join("data","ssd","ssd_deploy.prototxt")))
-            model_weights = kwargs.get("weights",get_data(os.path.join("data","ssd","ssd_deploy.caffemodel")))
-            self.classes = kwargs.get("classes",SSD_CLASSES)
-            self.model = cv2.dnn.readNetFromCaffe(model_proto_path, model_weights)
             self.size = kwargs.get("size",300)
             self.postprocess = kwargs.get("postprocess", lambda x:x)
         elif "torch"in method:
@@ -165,16 +178,17 @@ class Detector(object):
 
     def _dnn_target(self, boxs, conf, labels):
         mask = labels==self.target
-        return boxs[mask], conf[mask], labels[mask]
+        if sum(mask)==0:
+            return [], [], []
+        else:
+            return boxs[mask], conf[mask], labels[mask]
 
     def detect(self, img):
         if self.method=="yolo":
-            img_process = _dnn_preprocess(img)
+            img_process = _dnn_preprocess(img, scale=1/255, mean=0,size=412)
             self.model.setInput(img_process)
-            boxs, conf, labels = _ssd_postprocess(img, self.model.forward()) 
+            boxs, conf, labels = _yolo_postprocess(img, self.model.forward()) 
             return self._dnn_target(boxs, conf, labels)
-        elif self.method=="tinyYOLO":
-            pass
         elif "torch" in self.method:
             return self._post_process_torch(img, self.method)
         elif self.method=="ssd":
@@ -182,12 +196,6 @@ class Detector(object):
             self.model.setInput(img_process)
             boxs, conf, labels = _ssd_postprocess(img, self.model.forward()) 
             return self._dnn_target(boxs, conf, labels)
-        elif self.method=="custom":
-            img_process = _dnn_preprocess(img, size=self.size)
-            self.model.setInput(img_process)
-            out = self.model.forward()
-            return self.postprocess(out)
-            #return _ssd_postprocess(img, out)
         elif self.method=="haar":
             # we simply load the cascade classifier in opencv-python system
             # for this method we allow target in [eyes, smile, eye_glasses, catface, face, fullbody, upperbody, lowerbody, licence_plate]
