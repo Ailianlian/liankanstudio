@@ -178,6 +178,11 @@ class Detector(object):
 
     def _dnn_target(self, boxs, conf, labels):
         mask = labels==self.target
+        if isinstance(mask, bool):
+            if mask:
+                return boxs, conf, labels
+            else:
+                return [], [], []
         if sum(mask)==0:
             return [], [], []
         else:

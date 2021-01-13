@@ -54,7 +54,7 @@ def get_extra_requires():
 # w.x.y.z -> w.x.y.z+1 for every new dev improvment/test done.
 setup(
     name='liankanstudio',
-    version='0.4.3.0',
+    version='0.4.3.1',
     description="Wonderful answer to wonderful exercise.",
     long_description=open(os.path.join('package_info.rst')).read(),
     author='Paulien Jeunesse',
