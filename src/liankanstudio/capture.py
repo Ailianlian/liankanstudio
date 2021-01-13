@@ -6,6 +6,7 @@ from .tracking import TrackableObject
 import numpy as np
 import multiprocessing as mp
 import _pickle as cp
+import os
 
 (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
 CV2_MAJOR_VER = int(major_ver)
@@ -437,9 +438,27 @@ class Capture(object):
                 stats[frame_nb] = {}
                 # detect, identify, track 
                 if frame_nb in frames_where_detect:
+                    all_boxes
+                    all_conf
+                    for tracked in trackables:
+                        # if we didnt lose the track we just update it via un detector
+                        trackables[tracked].detect(img, detector, threshold_detect)
+                        all_boxes += [list(trackables[tracked].box)]
+                        all_conf+=[1]
                     boxes, conf, labels, true_boxes = _detect(img, detector, threshold_detect, merge_thresh, ret_all=True)
-                    trackables = _identify(img, boxes, trackables, object_counter, frame_nb, tracker_type)
-                    object_counter+=len(boxes)
+                    # we add all the new boxes we found after non maxima suppression
+                    all_boxes += [[box[0],box[1],box[2]-box[0],box[3]-box[1]] for box in boxes
+                    all_conf+=[cf for cf in conf]
+                    idxs = cv2.dnn.NMSBoxes(all_boxes, all_conf, threshold_detect, merge_thresh)
+                    boxes = all_boxes[idxs.flatten()]
+                    conf = all_conf[idxs.flatten()]
+                    if len(boxes)>len(trackables):
+                        # new objects
+                        for k in range(len(boxes)-len(trackables)):
+                            trackables[object_counter+k] = TrackableObject(object_counter+k,img=img, box=boxes[k+len(trackables)], frame_nb=frame_nb, tracker_type=tracker_type)
+                        object_counter+=(len(boxes)-len(trackables))
+                    # trackables = _identify(img, boxes, trackables, object_counter, frame_nb, tracker_type)
+                    #object_counter+=len(boxes)
                     stats[frame_nb]["conf"]=conf
                     stats[frame_nb]["trackables"]=trackables
                     stats[frame_nb]["boxes"]=true_boxes

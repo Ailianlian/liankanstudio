@@ -146,3 +146,12 @@ class TrackableObject(object):
         cv2.rectangle(img, p1, p2, (255,0,0), 2, 1)
         cv2.putText(img, f"Object {self.obj_id}.", (p1[0],p1[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(0,255,0),2)
         return img
+
+    def detect(self, img, detector, threshold_detect):
+        h,w = img.shape[0:2]
+        crop = img[max(self.box[0]-50,0):min(self.box[2]+self.box[0]+50,h),max(self.box[1]-50,0):min(self.box[3]+self.box[1]+50,w)]
+        boxes, conf, labels = detector.detect(img)
+        if len(boxes)>0:
+            #higher confidence one normally?
+            box=boxes[0]
+            self.box = tuple((box[0],box[1],box[2]-box[0],box[3]-box[1]))
