@@ -465,7 +465,7 @@ class Capture(object):
                 for frame_key in ret[key_scene]:
                     ret[key_scene][frame_key]["trackables"] = {key:item.info() for key,item in ret[key_scene][frame_key]["trackables"].items()}
             if output_path is None:
-                output_path = video_path.split('.')[0]+'.evia'
+                output_path = os.path.join(os.path.dirname(video_path),os.path.basename(video_path)+".evia")
             with open(output_path,'wb') as f:
                 cp.dump(ret, f)
         return ret
